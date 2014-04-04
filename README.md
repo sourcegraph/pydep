@@ -6,4 +6,6 @@ pydep is simple command line tool that will determine the dependencies of a pyth
 Usage
 -----
 
+```
 python pydep [--best-effort] <src-directory>
+```
