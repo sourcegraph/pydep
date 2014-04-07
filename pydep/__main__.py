@@ -6,7 +6,6 @@ import setuppy as stp
 
 def parse_args():
     args = argparse.ArgumentParser(description='pydep is simple command line tool that will print the dependencies of a python project in JSON')
-    args.add_argument('--strict', type=bool, default=False, help='If true, pydep will not list any potential false positive dependencies')
     args.add_argument('dir', help='path to root directory of project code')
     return args.parse_args()
 

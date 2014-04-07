@@ -7,5 +7,5 @@ Usage
 -----
 
 ```
-python pydep [--best-effort] <src-directory>
+python pydep <src-directory>
 ```
