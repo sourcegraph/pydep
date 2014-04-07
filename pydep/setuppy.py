@@ -3,6 +3,7 @@ import pkg_resources as pr
 import tempfile
 import shutil
 import subprocess
+import os
 from os import path
 
 def requirements(rootdir):
@@ -35,9 +36,12 @@ def setup_info(setupfile):
     setuptools_mod.setup = setup_replacement
     old_distutils_setup = distutils.core.setup
     distutils.core.setup = setup_replacement
-    # Mod sys.path
+    # Mod sys.path (changing sys.path is necessary in addition to changing the working dir, because of Python's import resolution order)
     old_sys_path = list(sys.path)
     sys.path.insert(0, path.dirname(setupfile))
+    # Change working dir (necessary because some setup.py files read relative paths from the filesystem)
+    old_wd = os.getcwd()
+    os.chdir(path.dirname(setupfile))
 
     global _first_time
     import setup as this_setup
@@ -46,6 +50,8 @@ def setup_info(setupfile):
     else:
         reload(this_setup)
 
+    # Restore working dir
+    os.chdir(old_wd)
     # Restore sys.path
     sys.path = old_sys_path
     # Restore setup()
