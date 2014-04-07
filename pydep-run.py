@@ -5,7 +5,7 @@ import pydep.metadata
 
 def parse_args():
     args = argparse.ArgumentParser(description='pydep is simple command line tool that will print the dependencies of a python project in JSON')
-    args.add_argument('--raw', type=bool, default=False, help='If true, pydep will not try to resolve dependencies to VCS URLs')
+    args.add_argument('--raw', action='store_true', help='If true, pydep will not try to resolve dependencies to VCS URLs')
     args.add_argument('dir', help='path to root directory of project code')
     return args.parse_args()
 
