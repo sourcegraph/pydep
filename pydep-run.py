@@ -1,8 +1,8 @@
 import json
 import argparse
 import sys
-import requirements as req
-import setuppy as stp
+import pydep.requirements as req
+import pydep.setuppy as stp
 
 def parse_args():
     args = argparse.ArgumentParser(description='pydep is simple command line tool that will print the dependencies of a python project in JSON')
