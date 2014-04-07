@@ -5,6 +5,10 @@ pydep is a simple module / command line tool that will print the dependencies of
 
 WARNING: pydep may run a project's `setup.py`. Do not run on untrusted code.
 
+Install
+-----
+`pip install git+git://github.com/sourcegraph/pydep`
+
 Usage
 -----
 
