@@ -4,6 +4,7 @@ import tempfile
 import shutil
 import subprocess
 import os
+import runpy
 from os import path
 
 def requirements(rootdir):
@@ -19,8 +20,6 @@ def requirements(rootdir):
             req = pr.Requirement.parse(req_str)
             reqs.append(req)
     return reqs, None
-
-_first_time = True
 
 def setup_info(setupfile):
     setup_dict = {}
@@ -43,12 +42,7 @@ def setup_info(setupfile):
     old_wd = os.getcwd()
     os.chdir(path.dirname(setupfile))
 
-    global _first_time
-    import setup as this_setup
-    if _first_time:
-        _first_time = False
-    else:
-        reload(this_setup)
+    runpy.run_path(setupfile, run_name='__main__')
 
     # Restore working dir
     os.chdir(old_wd)
