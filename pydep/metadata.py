@@ -1,5 +1,5 @@
-import setuppy
-import requirements
+import setup_py
+import requirements_txt
 import re
 import sys
 
@@ -16,7 +16,7 @@ def resolved_requirements(rootdir):
 
     resreqs = []
     for req in rawreqs:
-        req_info, err = setuppy.setup_info_from_requirement(req)
+        req_info, err = setup_py.setup_info_from_requirement(req)
         if err is not None:
             sys.stderr.write('error resolving requirement %s: %s\n' % (str(req), err))
             continue
@@ -36,9 +36,9 @@ repo_url_patterns = [
 ]
 
 def _raw_reqs(rootdir):
-    reqs, err = requirements.requirements(rootdir)
+    reqs, err = requirements_txt.requirements(rootdir)
     if err is not None:
-        reqs, err = setuppy.requirements(rootdir)
+        reqs, err = setup_py.requirements(rootdir)
     if err is not None:
         return None, 'could not get requirements due to error %s' % err
     return reqs, None
