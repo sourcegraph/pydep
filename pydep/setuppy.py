@@ -1,21 +1,31 @@
 import sys
 import pkg_resources as pr
+import tempfile
+import shutil
+import subprocess
 from os import path
-from requirements import requirements_dict
 
-def list_deps(dir):
-    setupfile = path.join(dir, 'setup.py')
+def requirements(rootdir):
+    setupfile = path.join(rootdir, 'setup.py')
     if not path.exists(setupfile):
         return None, 'setup.py does not exist'
 
-    req_dicts = []
+    setup_dict = setup_info(setupfile)
+    reqs = []
+    if 'install_requires' in setup_dict:
+        req_strs = setup_dict['install_requires']
+        for req_str in req_strs:
+            req = pr.Requirement.parse(req_str)
+            reqs.append(req)
+    return reqs, None
+
+_first_time = True
+
+def setup_info(setupfile):
+    setup_dict = {}
     def setup_replacement(**kw):
-        if 'install_requires' in kw:
-            req_strs = kw['install_requires']
-            for req_str in req_strs:
-                req = pr.Requirement.parse(req_str)
-                req_dict = requirements_dict(req)
-                req_dicts.append(req_dict)
+        for k, v in kw.iteritems():
+            setup_dict[k] = v
 
     setuptools_mod = __import__('setuptools')
     import distutils.core # for some reason, __import__('distutils.core') doesn't work
@@ -29,7 +39,12 @@ def list_deps(dir):
     old_sys_path = list(sys.path)
     sys.path.insert(0, path.dirname(setupfile))
 
-    __import__('setup')
+    global _first_time
+    import setup as this_setup
+    if _first_time:
+        _first_time = False
+    else:
+        reload(this_setup)
 
     # Restore sys.path
     sys.path = old_sys_path
@@ -37,4 +52,17 @@ def list_deps(dir):
     distutils.core.setup = old_distutils_setup
     setuptools_mod.setup = old_setuptools_setup
 
-    return req_dicts, None
+    return setup_dict
+
+def setup_info_from_requirement(requirement):
+    tmpdir = tempfile.mkdtemp()
+    with open('/dev/null', 'w') as devnull:
+        subprocess.call(['pip', 'install', '--build',  tmpdir, '--upgrade', '--force-reinstall', '--no-install', '--no-deps', str(requirement)],
+                        stdout=devnull, stderr=devnull)
+    setupfile = path.join(tmpdir, requirement.project_name, 'setup.py')
+    if not path.exists(setupfile):
+        return None, 'setup.py not found'
+    setup_dict = setup_info(setupfile)
+
+    shutil.rmtree(tmpdir)
+    return setup_dict, None

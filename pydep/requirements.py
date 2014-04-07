@@ -4,12 +4,12 @@ from glob import glob
 
 REQUIREMENTS_FILE_GLOB = '*requirements.txt'
 
-def list_deps(dir): # returns [], {'', None}
-    req_files = glob(path.join(dir, REQUIREMENTS_FILE_GLOB))
+def requirements(rootdir): # returns [], {'', None}
+    req_files = glob(path.join(rootdir, REQUIREMENTS_FILE_GLOB))
     if len(req_files) == 0:
         return None, 'no requirements file found'
 
-    req_dicts = {}
+    all_reqs = {}
     for f in req_files:
         with open(f) as req_file:
             req_text = req_file.read()
@@ -18,14 +18,5 @@ def list_deps(dir): # returns [], {'', None}
         except:
             return None, 'failed to parse requirements'
         for req in reqs:
-            req_dicts[str(req)] = requirements_dict(req)
-    return req_dicts.values(), None
-
-def requirements_dict(req):
-    return {
-        'project_name': req.project_name,
-        'unsafe_name': req.unsafe_name,
-        'key': req.key,
-        'specs': req.specs,
-        'extras': req.extras,
-    }
+            all_reqs[str(req)] = req
+    return all_reqs.values(), None
