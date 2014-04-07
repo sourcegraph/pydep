@@ -1,7 +1,7 @@
 pydep
 =====
 
-pydep is simple command line tool that will print the dependencies of a python project
+pydep is a simple module / command line tool that will print the dependencies of a python project
 
 Usage
 -----
