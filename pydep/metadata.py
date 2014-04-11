@@ -20,15 +20,7 @@ def resolved_requirements(rootdir):
         if err is not None:
             sys.stderr.write('error resolving requirement %s: %s\n' % (str(req), err))
             continue
-
-        repo_url = None
-        if 'url' in req_info:
-            repo_url = parse_repo_url(req_info['url'])
-        if repo_url is None and 'download_url' in req_info:
-            repo_url = parse_repo_url(req_info['download_url'])
-        if repo_url is None and req.key in _hardcoded_repo_urls:
-            repo_url = _hardcoded_repo_urls[req.key]
-        resreqs.append(req_dict(req, repo_url))
+        resreqs.append(req_dict(req, req_info))
     return resreqs, None
 
 repo_url_patterns = [
@@ -52,7 +44,16 @@ def parse_repo_url(url):
             return match.group(1)
     return None
 
-def req_dict(req, repo_url):
+def req_dict(req, setup_info):
+    repo_url = None
+    if 'url' in setup_info:
+        repo_url = parse_repo_url(setup_info['url'])
+    if repo_url is None and 'download_url' in setup_info:
+        repo_url = parse_repo_url(setup_info['download_url'])
+    if repo_url is None and req.key in _hardcoded_repo_urls:
+        repo_url = _hardcoded_repo_urls[req.key]
+    py_modules = setup_info['py_modules'] if 'py_modules' in setup_info else None
+    packages = setup_info['packages'] if 'packages' in setup_info else None
     return {
         'project_name': req.project_name,
         'unsafe_name': req.unsafe_name,
@@ -60,6 +61,8 @@ def req_dict(req, repo_url):
         'specs': req.specs,
         'extras': req.extras,
         'repo_url': repo_url,
+        'packages': packages,
+        'modules': py_modules,
     }
 
 _hardcoded_repo_urls = {
