@@ -11,11 +11,15 @@ Requirements
 
 Install
 -----
-`pip install git+git://github.com/sourcegraph/pydep`
+```
+pip install pydep
+pip install git+git://github.com/sourcegraph/pydep  # install from dev master
+```
 
 Usage
 -----
 
 ```
-python pydep <src-directory>
+pydep-run.py -h  # print out options
+pydep-run.py <src-directory>  # run pydep on directory
 ```
