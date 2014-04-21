@@ -1,20 +1,15 @@
 pydep
 =====
 
-pydep is a simple module / command line tool that will print the dependencies of a python project
+`pydep` is a simple module / command line tool that will print the dependencies of a python project
+`pydep` is still under active development. There are bugs. Pull requests welcome :)
 
-pydep is still under active development. There are bugs. Pull requests welcome :)
-
-__WARNING: pydep may run a project's `setup.py`. Do not run on untrusted code.__
-
-Requirements
------
-- pip
+__WARNING: `pydep` may execute a project's `setup.py`. Do not run on untrusted code.__
 
 Install
 -----
 ```
-pip install pydep
+pip install pydep                                   # install latest release
 pip install git+git://github.com/sourcegraph/pydep  # install from dev master
 ```
 
@@ -38,6 +33,10 @@ For example,
 "specs": [[">=", "2.4"]], "extras": []}, {"project_name": "itsdangerous", "unsafe_name": "itsdangerous", "key": "itsdangerous", "modules":
 ["itsdangerous"], "packages": null, "repo_url": "http://github.com/mitsuhiko/itsdangerous", "specs": [[">=", "0.21"]], "extras": []}]
 ```
+
+Additional requirements
+-----
+- pip
 
 Contributing
 ------------
