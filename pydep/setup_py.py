@@ -7,21 +7,8 @@ import os
 import runpy
 from os import path
 
-def requirements(rootdir):
-    setupfile = path.join(rootdir, 'setup.py')
-    if not path.exists(setupfile):
-        return None, 'setup.py does not exist'
-
-    setup_dict = setup_info(setupfile)
-    reqs = []
-    if 'install_requires' in setup_dict:
-        req_strs = setup_dict['install_requires']
-        for req_str in req_strs:
-            req = pr.Requirement.parse(req_str)
-            reqs.append(req)
-    return reqs, None
-
 def setup_info(setupfile):
+    """Returns metadata for a PyPI package by running its setupfile"""
     setup_dict = {}
     def setup_replacement(**kw):
         for k, v in kw.iteritems():
@@ -53,16 +40,3 @@ def setup_info(setupfile):
     setuptools_mod.setup = old_setuptools_setup
 
     return setup_dict
-
-def setup_info_from_requirement(requirement):
-    tmpdir = tempfile.mkdtemp()
-    with open('/dev/null', 'w') as devnull:
-        subprocess.call(['pip', 'install', '--build',  tmpdir, '--upgrade', '--force-reinstall', '--no-install', '--no-deps', str(requirement)],
-                        stdout=devnull, stderr=devnull)
-    setupfile = path.join(tmpdir, requirement.project_name, 'setup.py')
-    if not path.exists(setupfile):
-        return None, 'setup.py not found'
-    setup_dict = setup_info(setupfile)
-
-    shutil.rmtree(tmpdir)
-    return setup_dict, None

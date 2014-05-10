@@ -3,7 +3,7 @@
 import sys
 import json
 import argparse
-import pydep.metadata
+import pydep.req
 
 def parse_args():
     args = argparse.ArgumentParser(description='pydep is simple command line tool that will print the dependencies of a python project in JSON')
@@ -13,10 +13,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    if args.raw:
-        reqs, err = pydep.metadata.raw_requirements(args.dir)
-    else:
-        reqs, err = pydep.metadata.resolved_requirements(args.dir)
+    reqs, err = pydep.req.requirements(args.dir, not args.raw)
     if err is not None:
         sys.stderr.write('failed due to error %s' % err)
         sys.exit(1)
