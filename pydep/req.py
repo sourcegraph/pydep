@@ -127,8 +127,7 @@ class PipVCSInstallRequirement(object):
     """
     def __init__(self, install_req):
         if install_req.url is not None:
-            url = install_req.url
-            self.url = url[url.find('+')+1:]
+            self.url = parse_repo_url(install_req.url)
         self.metadata = None
 
     def to_dict(self):

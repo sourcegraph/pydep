@@ -6,10 +6,16 @@ class TestVCS(unittest.TestCase):
         testcases = [
             ('http://github.com/foo/bar', 'http://github.com/foo/bar'),
             ('https://github.com/foo/bar/baz', 'https://github.com/foo/bar'),
+            ('git+https://github.com/foo/bar/baz', 'https://github.com/foo/bar'),
+
             ('https://code.google.com/p/bar', 'https://code.google.com/p/bar'),
             ('https://code.google.com/p/bar/blah/blah', 'https://code.google.com/p/bar'),
+            ('git+https://code.google.com/p/bar/blah/blah', 'https://code.google.com/p/bar'),
+
             ('https://bitbucket.org/foo/bar', 'https://bitbucket.org/foo/bar'),
             ('https://bitbucket.org/foo/bar/baz', 'https://bitbucket.org/foo/bar'),
+            ('hg+https://bitbucket.org/foo/bar', 'https://bitbucket.org/foo/bar'),
+
             ('https://google.com', None),
         ]
 
