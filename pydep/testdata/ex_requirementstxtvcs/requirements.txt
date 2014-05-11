@@ -1,0 +1,3 @@
+git+https://github.com/foo/bar
+hg+https://code.google.com/p/foo
+foo

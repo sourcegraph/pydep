@@ -56,6 +56,25 @@ class Test_requirements(unittest.TestCase):
             ('ex_norequirementstxt', expected0),
             ('ex_weirdsetuppy', expected0),
             ('ex_nothing', '<<ERROR>>'),
+            ('ex_requirementstxtvcs', [
+                {'key': 'https://code.google.com/p/foo',
+                 'repo_url': 'https://code.google.com/p/foo',
+                 'type': 'vcs',
+                 'modules': None, 'extras': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None, 'unsafe_name': None},
+                {'key': 'https://github.com/foo/bar',
+                 'repo_url': 'https://github.com/foo/bar',
+                 'type': 'vcs', 'extras': None, 'modules': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None, 'unsafe_name': None},
+                {'extras': (),
+                 'key': 'foo',
+                 'project_name': 'foo',
+                 'type': 'setuptools',
+                 'unsafe_name': 'foo',
+                 'modules': None,
+                 'packages': None,
+                 'repo_url': None,
+                 'resolved': False,
+                 'specs': []}
+            ]),
         ]
         for testcase in testcases:
             dir_, exp = testcase[0], testcase[1]

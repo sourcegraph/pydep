@@ -4,6 +4,7 @@ This module contains classes for dealing with pip and setuptools requirements cl
 
 import sys
 import pkg_resources as pr
+import pip.req
 import tempfile
 import shutil
 import subprocess
@@ -58,14 +59,13 @@ def requirements_from_requirements_txt(rootdir):
 
     all_reqs = {}
     for f in req_files:
-        with open(f) as req_file:
-            req_text = req_file.read()
-        try:
-            reqs = pr.parse_requirements(req_text)
-        except:
-            return None, 'failed to parse requirements'
-        for req in reqs:
-            all_reqs[str(req)] = SetupToolsRequirement(req)
+        for install_req in pip.req.parse_requirements(f):
+            if install_req.req is None:
+                req = PipVCSInstallRequirement(install_req)
+            else:
+                req = SetupToolsRequirement(install_req.req)
+            all_reqs[str(req)] = req
+
     return all_reqs.values(), None
 
 
@@ -77,6 +77,9 @@ class SetupToolsRequirement(object):
     def __init__(self, req):
         self.req = req
         self.metadata = None
+
+    def __str__(self):
+        return self.req.__str__()
 
     def to_dict(self):
         repo_url, py_modules, packages = None, None, None
@@ -126,9 +129,13 @@ class PipVCSInstallRequirement(object):
     The constructor takes a pip.req.InstallRequirement.
     """
     def __init__(self, install_req):
-        if install_req.url is not None:
-            self.url = parse_repo_url(install_req.url)
+        if install_req.url is None:
+            raise 'No URL found in install_req: %s' % str(install_req)
+        self.url = parse_repo_url(install_req.url)
         self.metadata = None
+
+    def __str__(self):
+        return self.url.__str__()
 
     def to_dict(self):
         return {
