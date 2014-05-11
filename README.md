@@ -38,6 +38,10 @@ Additional requirements
 -----
 - pip
 
+Tests
+-----
+Install nose (`pip install nose`). Then, `nosetests -s` from the root repository directory.
+
 Contributing
 ------------
 Make a pull request!
