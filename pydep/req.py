@@ -14,6 +14,10 @@ import setup_py
 from vcs import parse_repo_url
 
 def requirements(rootdir, resolve=True):
+    """
+    Accepts the root directory of a PyPI package and returns its requirements.
+    Returns (requirements, error_string) tuple. error_string is None if no error.
+    """
     reqs, err = requirements_from_requirements_txt(rootdir)
     if err is not None:
         reqs, err = requirements_from_setup_py(rootdir)
@@ -65,7 +69,7 @@ def requirements_from_requirements_txt(rootdir):
     return all_reqs.values(), None
 
 
-class SetupToolsRequirement:
+class SetupToolsRequirement(object):
     """
     This represents a standard python requirement as defined by setuptools (e.g., "mypkg>=0.0.1").
     The constructor takes a pkg_resources.Requirement.
@@ -114,7 +118,7 @@ class SetupToolsRequirement:
         self.metadata = setup_dict
         return None
 
-class PipVCSInstallRequirement:
+class PipVCSInstallRequirement(object):
     """
     This represents a VCS requirement as seen by pip (e.g., 'git+git://github.com/foo/bar/').
     Such a requirement is not a valid requirement by setuptools standards. (In a setup.py, you would add the name/version
