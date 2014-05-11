@@ -7,6 +7,7 @@ repo_url_patterns = [
 ]
 
 def parse_repo_url(url):
+    """Returns the repository clone URL from a URL that points to a subelement of a repository"""
     for pattern in repo_url_patterns:
         match = re.match(pattern, url)
         if match is not None:
