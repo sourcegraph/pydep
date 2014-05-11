@@ -126,7 +126,9 @@ class PipVCSInstallRequirement(object):
     The constructor takes a pip.req.InstallRequirement.
     """
     def __init__(self, install_req):
-        self.url = install_req.url
+        if install_req.url is not None:
+            url = install_req.url
+            self.url = url[url.find('+')+1:]
         self.metadata = None
 
     def to_dict(self):

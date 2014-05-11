@@ -1,5 +1,8 @@
 import unittest
 import pkg_resources as pr
+import pip.req
+import tempfile
+import os
 from os import path
 from req import *
 
@@ -91,10 +94,35 @@ class Test_requirements(unittest.TestCase):
             }),
         ]
         for testcase in testcases:
-            req_str = testcase[0]
-            exp_dict = testcase[1]
+            req_str, exp_dict = testcase[0], testcase[1]
             req = SetupToolsRequirement(pr.Requirement.parse(req_str))
             self.assertDictEqual(exp_dict, req.to_dict())
 
     def test_PipVCSInstallRequirement(self):
-        pass
+        requirements_str = """
+        git+https://github.com/foo/bar
+        git+https://code.google.com/p/foo
+        """
+        expected = [
+            {
+                'type': 'vcs',
+                'key': 'https://github.com/foo/bar',
+                'repo_url': 'https://github.com/foo/bar',
+                'unsafe_name': None, 'extras': None, 'modules': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None,
+            },
+            {
+                'type': 'vcs',
+                'key': 'https://code.google.com/p/foo',
+                'repo_url': 'https://code.google.com/p/foo',
+                'unsafe_name': None, 'extras': None, 'modules': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None,
+            },
+        ]
+
+        _, requirements_file = tempfile.mkstemp()
+        with open(requirements_file, 'w') as f:
+            f.write(requirements_str)
+        pip_reqs = pip.req.parse_requirements(requirements_file)
+        reqs = [PipVCSInstallRequirement(r).to_dict() for r in pip_reqs]
+        os.remove(requirements_file)
+
+        self.assertListEqual(expected, reqs)
