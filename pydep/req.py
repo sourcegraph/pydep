@@ -116,8 +116,8 @@ class SetupToolsRequirement(object):
         if not path.exists(setupfile):
             return 'setup.py not found'
         setup_dict = setup_py.setup_info(setupfile)
-
         shutil.rmtree(tmpdir)
+
         self.metadata = setup_dict
         return None
 
@@ -133,11 +133,17 @@ class PipVCSInstallRequirement(object):
             raise 'No URL found in install_req: %s' % str(install_req)
         self.url = parse_repo_url(install_req.url)
         self.metadata = None
+        if install_req.url.find('+') >= 0:
+            self.vcs = install_req.url[:install_req.url.find('+')]
 
     def __str__(self):
         return self.url.__str__()
 
     def to_dict(self):
+        py_modules, packages = None, None
+        if self.metadata is not None:
+            py_modules = self.metadata['py_modules'] if 'py_modules' in self.metadata else None
+            packages = self.metadata['packages'] if 'packages' in self.metadata else None
         return {
             'type': 'vcs',
             'resolved': False,
@@ -147,16 +153,31 @@ class PipVCSInstallRequirement(object):
             'specs': None,
             'extras': None,
             'repo_url': self.url,
-            'packages': None,
-            'modules': None,
+            'packages': packages,
+            'modules': py_modules,
         }
 
     def resolve(self):
         """
+        Downloads this requirement from the VCS repository and returns metadata from its setup.py.
         Returns an error string or None if no error.
-        TODO: resolve should download the requirement and extract the metadata from its setup.py, but right now,
-        it does nothing, because the setup.py metadata of a package that is not on PyPI is of uncertain value and meaning.
         """
+        tmpdir = tempfile.mkdtemp()
+        with open('/dev/null', 'w') as devnull:
+            # Because of a bug in pip when dealing with VCS URLs, we can't use pip to download the repository
+            if self.vcs == 'git':
+                subprocess.call(['git', 'clone', '--depth=1', self.url, tmpdir], stdout=devnull, stderr=devnull)
+            elif self.vcs == 'hg':
+                subprocess.call(['hg', 'clone', self.url, tmpdir], stdout=devnull, stderr=devnull)
+            else:
+                return 'cannot resolve with unrecognized VCS: %s' % self.vcs
+        setupfile = path.join(tmpdir, 'setup.py')
+        if not path.exists(setupfile):
+            return 'setup.py not found'
+        setup_dict = setup_py.setup_info(setupfile)
+        shutil.rmtree(tmpdir)
+
+        self.metadata = setup_dict
         return None
 
 _hardcoded_repo_urls = {
