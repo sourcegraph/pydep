@@ -1,9 +1,9 @@
 import re
 
 repo_url_patterns = [
-    r'(?:git\+)?(https?\://github.com/(?:[^/]+)/(?:[^/]+))(?:/.*)?',
-    r'(?:git\+|hg\+)?(https?\://bitbucket.org/(?:[^/]+)/(?:[^/]+))(?:/.*)?',
-    r'(?:git\+|hg\+)?(https?\://code.google.com/p/(?:[^/]+))(?:/.*)?',
+    r'(?:git\+)?((?:https?|git)\://github.com/(?:[^/#]+)/(?:[^/#]+))(?:/.*)?',
+    r'(?:git\+|hg\+)?((?:https?|git|hg)\://bitbucket.org/(?:[^/#]+)/(?:[^/#]+))(?:/.*)?',
+    r'(?:git\+|hg\+)?((?:https?|git|hg)\://code.google.com/p/(?:[^/#]+))(?:/.*)?',
 ]
 
 def parse_repo_url(url):
