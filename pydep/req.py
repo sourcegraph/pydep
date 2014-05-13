@@ -60,7 +60,7 @@ def requirements_from_requirements_txt(rootdir):
     all_reqs = {}
     for f in req_files:
         for install_req in pip.req.parse_requirements(f):
-            if install_req.req is None:
+            if install_req.url is not None:
                 req = PipVCSInstallRequirement(install_req)
             else:
                 req = SetupToolsRequirement(install_req.req)
@@ -129,29 +129,38 @@ class PipVCSInstallRequirement(object):
     The constructor takes a pip.req.InstallRequirement.
     """
     def __init__(self, install_req):
+        self._install_req = install_req
         if install_req.url is None:
             raise 'No URL found in install_req: %s' % str(install_req)
         self.url = parse_repo_url(install_req.url)
         self.metadata = None
+        self.vcs = None
         if install_req.url.find('+') >= 0:
             self.vcs = install_req.url[:install_req.url.find('+')]
+        self.setuptools_req = install_req.req # may be None
 
     def __str__(self):
         return self.url.__str__()
 
     def to_dict(self):
+        project_name, unsafe_name, specs, extras, key = None, None, None, None, self.url
+        if self.setuptools_req is not None:
+            r = self.setuptools_req
+            project_name, unsafe_name, specs, extras = r.project_name, r.unsafe_name, r.specs, r.extras
+            key = '%s(%s)' % (r.key, self.url)
+
         py_modules, packages = None, None
         if self.metadata is not None:
             py_modules = self.metadata['py_modules'] if 'py_modules' in self.metadata else None
             packages = self.metadata['packages'] if 'packages' in self.metadata else None
         return {
             'type': 'vcs',
-            'resolved': False,
-            'project_name': None,
-            'unsafe_name': None,
-            'key': self.url,
-            'specs': None,
-            'extras': None,
+            'resolved': (self.metadata is not None),
+            'project_name': project_name,
+            'unsafe_name': unsafe_name,
+            'key': key,
+            'specs': specs,
+            'extras': extras,
             'repo_url': self.url,
             'packages': packages,
             'modules': py_modules,
@@ -170,7 +179,7 @@ class PipVCSInstallRequirement(object):
             elif self.vcs == 'hg':
                 subprocess.call(['hg', 'clone', self.url, tmpdir], stdout=devnull, stderr=devnull)
             else:
-                return 'cannot resolve with unrecognized VCS: %s' % self.vcs
+                return 'cannot resolve requirement %s (from %s) with unrecognized VCS: %s' % (str(self), str(self._install_req), self.vcs)
         setupfile = path.join(tmpdir, 'setup.py')
         if not path.exists(setupfile):
             return 'setup.py not found'

@@ -121,6 +121,7 @@ class Test_requirements(unittest.TestCase):
         requirements_str = """
         git+https://github.com/foo/bar
         git+https://code.google.com/p/foo
+        git+git://code.google.com/p/foo#egg=bar
         """
         expected = [
             {
@@ -134,6 +135,14 @@ class Test_requirements(unittest.TestCase):
                 'key': 'https://code.google.com/p/foo',
                 'repo_url': 'https://code.google.com/p/foo',
                 'unsafe_name': None, 'extras': None, 'modules': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None,
+            },
+            {
+                'type': 'vcs',
+                'key': 'bar(git://code.google.com/p/foo)',
+                'repo_url': 'git://code.google.com/p/foo',
+                'unsafe_name': 'bar',
+                'project_name': 'bar',
+                'specs': [], 'extras': (), 'modules': None, 'packages': None,  'resolved': False,
             },
         ]
 
