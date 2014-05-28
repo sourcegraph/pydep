@@ -38,11 +38,10 @@ def requirements_from_setup_py(rootdir):
     Accepts the root directory of a PyPI package and returns its requirements extracted from its setup.py
     Returns [], {'', None}
     """
-    setupfile = path.join(rootdir, 'setup.py')
-    if not path.exists(setupfile):
-        return None, 'setup.py does not exist'
+    setup_dict, err = setup_py.setup_info_dir(rootdir)
+    if err is not None:
+        return None, err
 
-    setup_dict = setup_py.setup_info(setupfile)
     reqs = []
     if 'install_requires' in setup_dict:
         req_strs = setup_dict['install_requires']
@@ -112,10 +111,10 @@ class SetupToolsRequirement(object):
         with open('/dev/null', 'w') as devnull:
             subprocess.call(['pip', 'install', '--build',  tmpdir, '--upgrade', '--force-reinstall', '--no-install', '--no-deps', '--no-use-wheel', str(self.req)],
                             stdout=devnull, stderr=devnull)
-        setupfile = path.join(tmpdir, self.req.project_name, 'setup.py')
-        if not path.exists(setupfile):
-            return 'setup.py not found'
-        setup_dict = setup_py.setup_info(setupfile)
+        projectdir = path.join(tmpdir, self.req.project_name)
+        setup_dict, err = setup_py.setup_info_dir(projectdir)
+        if err is not None:
+            return None, err
         shutil.rmtree(tmpdir)
 
         self.metadata = setup_dict
@@ -153,6 +152,9 @@ class PipVCSInstallRequirement(object):
         if self.metadata is not None:
             py_modules = self.metadata['py_modules'] if 'py_modules' in self.metadata else None
             packages = self.metadata['packages'] if 'packages' in self.metadata else None
+            if project_name is None and 'name' in self.metadata:
+                project_name = self.metadata['name']
+
         return {
             'type': 'vcs',
             'resolved': (self.metadata is not None),
@@ -180,10 +182,9 @@ class PipVCSInstallRequirement(object):
                 subprocess.call(['hg', 'clone', self.url, tmpdir], stdout=devnull, stderr=devnull)
             else:
                 return 'cannot resolve requirement %s (from %s) with unrecognized VCS: %s' % (str(self), str(self._install_req), self.vcs)
-        setupfile = path.join(tmpdir, 'setup.py')
-        if not path.exists(setupfile):
-            return 'setup.py not found'
-        setup_dict = setup_py.setup_info(setupfile)
+        setup_dict, err = setup_py.setup_info_dir(tmpdir)
+        if err is not None:
+            return None, err
         shutil.rmtree(tmpdir)
 
         self.metadata = setup_dict

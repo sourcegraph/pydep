@@ -7,6 +7,15 @@ import os
 import runpy
 from os import path
 
+def setup_info_dir(rootdir):
+    """
+    Returns (metadata, error_string) tuple. error_string is None if no error.
+    """
+    setupfile = path.join(rootdir, 'setup.py')
+    if not path.exists(setupfile):
+        return None, 'setup.py does not exist'
+    return setup_info(setupfile), None
+
 def setup_info(setupfile):
     """Returns metadata for a PyPI package by running its setupfile"""
     setup_dict = {}
