@@ -105,7 +105,6 @@ def setup_dict_to_json_serializable_dict(d):
         'scripts': d['scripts'] if 'scripts' in d else None,
         'author': d['author'] if 'author' in d else None,
         'description': d['description'] if 'description' in d else None,
-        'install_requires': d['install_requires'] if 'install_requires' in d else None,
     }
 
 
