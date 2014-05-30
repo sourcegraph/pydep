@@ -25,6 +25,10 @@ def main():
     info_parser.add_argument('dir', help='path to root directory of project code')
     info_parser.set_defaults(func=info)
 
+    list_info_parser = subparsers.add_parser('list', help='print metadata of all python projects in a directory')
+    list_info_parser.add_argument('dir', help='path to containing directory')
+    list_info_parser.set_defaults(func=list_info)
+
     smoke_parser = subparsers.add_parser('demo', help='run pydep against some popular repositories, printing out dependency information about each')
     smoke_parser.set_defaults(func=smoke_test)
 
@@ -35,6 +39,18 @@ def main():
 #
 # Sub-commands
 #
+
+def list_info(args):
+    """Subcommand to print out metadata of all packages contained in a directory"""
+    setup_dirs = pydep.setup_py.setup_dirs(args.dir)
+    setup_infos = []
+    for setup_dir in setup_dirs:
+        setup_dict, err = pydep.setup_py.setup_info_dir(setup_dir)
+        if err is not None:
+            sys.stderr.write('failed due to error: %s\n' % err)
+            sys.exit(1)
+        setup_infos.append(setup_dict_to_json_serializable_dict(setup_dict, rootdir=setup_dir))
+    print json.dumps(setup_infos)
 
 def info(args):
     """Subcommand to print out metadata of package"""
@@ -57,6 +73,8 @@ def smoke_test(args):
     testcases = [
         ('Flask', 'https://github.com/mitsuhiko/flask.git'),
         ('Graphite, a webapp that depends on Django', 'https://github.com/graphite-project/graphite-web'),
+        # TODO: update smoke_test to call setup_dirs/list instead of assuming setup.py exists at the repository root
+        # ('Node', 'https://github.com/joyent/node.git'),
     ]
     try:
         tmpdir = tempfile.mkdtemp()
@@ -95,8 +113,9 @@ def smoke_test(args):
 # Helpers
 #
 
-def setup_dict_to_json_serializable_dict(d):
+def setup_dict_to_json_serializable_dict(d, **kw):
     return {
+        'rootdir': kw['rootdir'] if 'rootdir' in kw else None,
         'project_name': d['name'] if 'name' in d else None,
         'version': d['version'] if 'version' in d else None,
         'repo_url': d['url'] if 'url' in d else None,

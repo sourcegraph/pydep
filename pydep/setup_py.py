@@ -7,6 +7,20 @@ import os
 import runpy
 from os import path
 
+def setup_dirs(container_dir):
+    """
+    Given a directory that may contain Python packages (defined by setup.py
+    files), returns a list of package root directories (i.e., directories that
+    contain a setup.py)
+    """
+    rootdirs = []
+    for dirpath, _, filenames in os.walk(container_dir):
+        for filename in filenames:
+            if filename == 'setup.py':
+                rootdirs.append(dirpath)
+                break
+    return rootdirs
+
 def setup_info_dir(rootdir):
     """
     Returns (metadata, error_string) tuple. error_string is None if no error.
@@ -38,7 +52,7 @@ def setup_info(setupfile):
     old_wd = os.getcwd()
     os.chdir(path.dirname(setupfile))
 
-    runpy.run_path(setupfile, run_name='__main__')
+    runpy.run_path(path.basename(setupfile), run_name='__main__')
 
     # Restore working dir
     os.chdir(old_wd)
