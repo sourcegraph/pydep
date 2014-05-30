@@ -42,14 +42,15 @@ def main():
 
 def list_info(args):
     """Subcommand to print out metadata of all packages contained in a directory"""
-    setup_dirs = pydep.setup_py.setup_dirs(args.dir)
+    container_dir = args.dir
+    setup_dirs = pydep.setup_py.setup_dirs(container_dir)
     setup_infos = []
     for setup_dir in setup_dirs:
         setup_dict, err = pydep.setup_py.setup_info_dir(setup_dir)
         if err is not None:
             sys.stderr.write('failed due to error: %s\n' % err)
             sys.exit(1)
-        setup_infos.append(setup_dict_to_json_serializable_dict(setup_dict, rootdir=setup_dir))
+        setup_infos.append(setup_dict_to_json_serializable_dict(setup_dict, rootdir=path.relpath(setup_dir, container_dir)))
     print json.dumps(setup_infos)
 
 def info(args):
