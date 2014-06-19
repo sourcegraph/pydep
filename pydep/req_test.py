@@ -55,6 +55,7 @@ class Test_requirements(unittest.TestCase):
             ('ex_nosetuppy', expected0),
             ('ex_norequirementstxt', expected0),
             ('ex_weirdsetuppy', expected0),
+            ('ex_setuppy_prints', expected0),
             ('ex_nothing', '<<ERROR>>'),
             ('ex_requirementstxtvcs', [
                 {'key': 'https://code.google.com/p/foo',
@@ -81,6 +82,8 @@ class Test_requirements(unittest.TestCase):
             rootdir = path.join(testdatadir, dir_)
             reqs, err = requirements(rootdir, resolve=False)
             if err != None:
+                if exp != '<<ERROR>>':
+                    print 'unexpected error: ', err
                 self.assertEqual(exp, '<<ERROR>>')
             else:
                 self.assertListEqual(sorted(exp), sorted(reqs))

@@ -51,9 +51,19 @@ def setup_info(setupfile):
     # Change working dir (necessary because some setup.py files read relative paths from the filesystem)
     old_wd = os.getcwd()
     os.chdir(path.dirname(setupfile))
+    # Redirect stdout to stderr (*including for subprocesses*)
+    old_sys_stdout = sys.stdout # redirects in python process
+    sys.stdout = sys.stderr
+    old_stdout = os.dup(1)      # redirects in subprocesses
+    stderr_dup = os.dup(2)
+    os.dup2(stderr_dup, 1)
 
     runpy.run_path(path.basename(setupfile), run_name='__main__')
 
+    # Restore stdout
+    os.dup2(old_stdout, 1)      # restores for subprocesses
+    os.close(stderr_dup)
+    sys.stdout = old_sys_stdout # restores for python process
     # Restore working dir
     os.chdir(old_wd)
     # Restore sys.path
