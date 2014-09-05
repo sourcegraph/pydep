@@ -42,7 +42,7 @@ For example,
 Additional requirements
 -----
 - Unix (Windows is untested and will probably fail, because, e.g., things get piped to /dev/null in a few places)
-- pip
+- pip 1.5+
 
 Tests
 -----
