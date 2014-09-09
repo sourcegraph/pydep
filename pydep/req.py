@@ -50,7 +50,7 @@ def requirements_from_setup_py(rootdir):
             reqs.append(SetupToolsRequirement(pr.Requirement.parse(req_str)))
     return reqs, None
 
-REQUIREMENTS_FILE_GLOB = '*requirements.txt'
+REQUIREMENTS_FILE_GLOB = '*requirements*.txt'
 
 def requirements_from_requirements_txt(rootdir):
     req_files = glob(path.join(rootdir, REQUIREMENTS_FILE_GLOB))
