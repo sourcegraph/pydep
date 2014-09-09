@@ -63,7 +63,7 @@ def requirements_from_requirements_txt(rootdir):
     for f in req_files:
         for install_req in pip.req.parse_requirements(f):
             if install_req.url is not None:
-                req = PipVCSInstallRequirement(install_req)
+                req = PipURLInstallRequirement(install_req)
             else:
                 req = SetupToolsRequirement(install_req.req)
             all_reqs[str(req)] = req
@@ -123,11 +123,12 @@ class SetupToolsRequirement(object):
         self.metadata = setup_dict
         return None
 
-class PipVCSInstallRequirement(object):
+class PipURLInstallRequirement(object):
     """
-    This represents a VCS requirement as seen by pip (e.g., 'git+git://github.com/foo/bar/').
+    This represents a URL requirement as seen by pip (e.g., 'git+git://github.com/foo/bar/').
     Such a requirement is not a valid requirement by setuptools standards. (In a setup.py, you would add the name/version
-    of the requirement to install_requires as with PyPI packages, and then add the VCS link to dependency_links.)
+    of the requirement to install_requires as with PyPI packages, and then add the URL link to dependency_links.  
+    Also included archive files such as *.zip, *.tar, *.zip.gz, or *.tar.gz)
     The constructor takes a pip.req.InstallRequirement.
     """
     def __init__(self, install_req):
@@ -137,6 +138,7 @@ class PipVCSInstallRequirement(object):
         self.url = parse_repo_url(install_req.url)
         self.metadata = None
         self.vcs = None
+        self.type = 'vcs'
         if install_req.url.find('+') >= 0:
             self.vcs = install_req.url[:install_req.url.find('+')]
         self.setuptools_req = install_req.req # may be None
@@ -159,7 +161,7 @@ class PipVCSInstallRequirement(object):
                 project_name = self.metadata['name']
 
         return {
-            'type': 'vcs',
+            'type': self.type,
             'resolved': (self.metadata is not None),
             'project_name': project_name,
             'unsafe_name': unsafe_name,
@@ -173,7 +175,7 @@ class PipVCSInstallRequirement(object):
 
     def resolve(self):
         """
-        Downloads this requirement from the VCS repository and returns metadata from its setup.py.
+        Downloads this requirement from the VCS repository or archive file and returns metadata from its setup.py.
         Returns an error string or None if no error.
         """
         tmpdir = tempfile.mkdtemp()
@@ -187,6 +189,7 @@ class PipVCSInstallRequirement(object):
                 #for zip or tar files w/o VCS
                 install_url = self._install_req.url
                 if self.vcs is None and re.compile(r'^(http|https)://[^/]+/.+\.(zip|tar)(\.gz|)$', re.IGNORECASE).match(install_url) is not None:
+                    self.type = 'archive'
                     tmparchive = tempfile.mkstemp()[1]
                     subprocess.call(['wget', '-O', tmparchive, install_url], stdout=devnull, stderr=devnull)
                     if install_url[-3:] == ".gz":
