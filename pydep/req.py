@@ -12,7 +12,6 @@ import os
 import re
 from glob import glob
 from os import path
-from urlparse import urlparse
 
 import setup_py
 from vcs import parse_repo_url
@@ -141,6 +140,8 @@ class PipURLInstallRequirement(object):
         self.type = 'vcs'
         if install_req.url.find('+') >= 0:
             self.vcs = install_req.url[:install_req.url.find('+')]
+        elif re.compile(r'^(http|https)://[^/]+/.+\.(zip|tar)(\.gz|)$', re.IGNORECASE).match(install_req.url) is not None:
+            self.type = 'archive'
         self.setuptools_req = install_req.req # may be None
 
     def __str__(self):
@@ -185,22 +186,19 @@ class PipURLInstallRequirement(object):
                 subprocess.call(['git', 'clone', '--depth=1', self.url, tmpdir], stdout=devnull, stderr=devnull)
             elif self.vcs == 'hg':
                 subprocess.call(['hg', 'clone', self.url, tmpdir], stdout=devnull, stderr=devnull)
-            else:
-                #for zip or tar files w/o VCS
+            elif self.vcs is None and self.type == 'archive':
                 install_url = self._install_req.url
-                if self.vcs is None and re.compile(r'^(http|https)://[^/]+/.+\.(zip|tar)(\.gz|)$', re.IGNORECASE).match(install_url) is not None:
-                    self.type = 'archive'
-                    tmparchive = tempfile.mkstemp()[1]
-                    subprocess.call(['wget', '-O', tmparchive, install_url], stdout=devnull, stderr=devnull)
-                    if install_url[-3:] == ".gz":
-                        subprocess.call(['gunzip', '-c', tmparchive], stdout=devnull, stderr=devnull)
-                        install_url = install_url[0:-3]
-                    if install_url[-4:] == ".tar":
-                        subprocess.call(['tar', '-xvf', tmparchive, '-C', tmpdir], stdout=devnull, stderr=devnull)
-                    elif install_url[-4:] == ".zip":
-                        subprocess.call(['unzip', '-j', '-o', tmparchive, '-d', tmpdir], stdout=devnull, stderr=devnull)
-                else:
-                    return 'cannot resolve requirement %s (from %s) with unrecognized VCS: %s' % (str(self), str(self._install_req), self.vcs)
+                tmparchive = tempfile.mkstemp()[1]
+                subprocess.call(['wget', '-O', tmparchive, install_url], stdout=devnull, stderr=devnull)
+                if install_url[-3:] == ".gz":
+                    subprocess.call(['gunzip', '-c', tmparchive], stdout=devnull, stderr=devnull)
+                    install_url = install_url[0:-3]
+                if install_url[-4:] == ".tar":
+                    subprocess.call(['tar', '-xvf', tmparchive, '-C', tmpdir], stdout=devnull, stderr=devnull)
+                elif install_url[-4:] == ".zip":
+                    subprocess.call(['unzip', '-j', '-o', tmparchive, '-d', tmpdir], stdout=devnull, stderr=devnull)
+            else:
+                return 'cannot resolve requirement %s (from %s) with unrecognized VCS: %s' % (str(self), str(self._install_req), self.vcs)
         setup_dict, err = setup_py.setup_info_dir(tmpdir)
         if err is not None:
             return None, err
