@@ -189,13 +189,13 @@ class PipURLInstallRequirement(object):
             elif self.vcs is None and self.type == 'archive':
                 install_url = self._install_req.url
                 tmparchive = tempfile.mkstemp()[1]
-                subprocess.call(['wget', '-O', tmparchive, install_url], stdout=devnull, stderr=devnull)
-                if install_url[-3:] == ".gz":
+                subprocess.call(['curl', '-L', install_url, '-o', tmparchive], stdout=devnull, stderr=devnull)
+                if install_url.endswith(".gz"):
                     subprocess.call(['gunzip', '-c', tmparchive], stdout=devnull, stderr=devnull)
                     install_url = install_url[0:-3]
-                if install_url[-4:] == ".tar":
+                if install_url.endswith(".tar"):
                     subprocess.call(['tar', '-xvf', tmparchive, '-C', tmpdir], stdout=devnull, stderr=devnull)
-                elif install_url[-4:] == ".zip":
+                elif install_url.endswith(".zip"):
                     subprocess.call(['unzip', '-j', '-o', tmparchive, '-d', tmpdir], stdout=devnull, stderr=devnull)
             else:
                 return 'cannot resolve requirement %s (from %s) with unrecognized VCS: %s' % (str(self), str(self._install_req), self.vcs)
