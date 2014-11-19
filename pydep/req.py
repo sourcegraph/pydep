@@ -110,8 +110,13 @@ class SetupToolsRequirement(object):
         """Downloads this requirement from PyPI and returns metadata from its setup.py. Returns an error string or None if no error."""
         tmpdir = tempfile.mkdtemp()
         with open(os.devnull, 'w') as devnull:
-            subprocess.call(['pip', 'install', '--build',  tmpdir, '--upgrade', '--force-reinstall', '--no-install', '--no-deps', '--no-use-wheel', str(self.req)],
-                            stdout=devnull, stderr=devnull)
+            try:
+                subprocess.check_call(['pip', 'install', '--build',  tmpdir, '--upgrade', '--force-reinstall', '--no-install', '--no-deps', '--no-use-wheel', str(self.req)],
+                                      stdout=devnull, stderr=devnull)
+            except Exception as e:
+                shutil.rmtree(tmpdir)
+                return 'error downloading requirement: %s' % str(e)
+
         projectdir = path.join(tmpdir, self.req.project_name)
         setup_dict, err = setup_py.setup_info_dir(projectdir)
         if err is not None:
