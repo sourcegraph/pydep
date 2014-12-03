@@ -43,6 +43,7 @@ Additional requirements
 -----
 - Unix (Windows is untested and will probably fail, because, e.g., things get piped to /dev/null in a few places)
 - pip 1.5+
+- curl, unzip, gunzip, tar
 
 Tests
 -----

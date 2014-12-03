@@ -9,6 +9,7 @@ import tempfile
 import shutil
 import subprocess
 import os
+import re
 from glob import glob
 from os import path
 
@@ -61,7 +62,7 @@ def requirements_from_requirements_txt(rootdir):
     for f in req_files:
         for install_req in pip.req.parse_requirements(f):
             if install_req.url is not None:
-                req = PipVCSInstallRequirement(install_req)
+                req = PipURLInstallRequirement(install_req)
             else:
                 req = SetupToolsRequirement(install_req.req)
             all_reqs[str(req)] = req
@@ -126,11 +127,12 @@ class SetupToolsRequirement(object):
         self.metadata = setup_dict
         return None
 
-class PipVCSInstallRequirement(object):
+class PipURLInstallRequirement(object):
     """
-    This represents a VCS requirement as seen by pip (e.g., 'git+git://github.com/foo/bar/').
+    This represents a URL requirement as seen by pip (e.g., 'git+git://github.com/foo/bar/').
     Such a requirement is not a valid requirement by setuptools standards. (In a setup.py, you would add the name/version
-    of the requirement to install_requires as with PyPI packages, and then add the VCS link to dependency_links.)
+    of the requirement to install_requires as with PyPI packages, and then add the URL link to dependency_links.  
+    Also included archive files such as *.zip, *.tar, *.zip.gz, or *.tar.gz)
     The constructor takes a pip.req.InstallRequirement.
     """
     def __init__(self, install_req):
@@ -140,8 +142,11 @@ class PipVCSInstallRequirement(object):
         self.url = parse_repo_url(install_req.url)
         self.metadata = None
         self.vcs = None
+        self.type = 'vcs'
         if install_req.url.find('+') >= 0:
             self.vcs = install_req.url[:install_req.url.find('+')]
+        elif re.compile(r'^(http|https)://[^/]+/.+\.(zip|tar)(\.gz|)$', re.IGNORECASE).match(install_req.url) is not None:
+            self.type = 'archive'
         self.setuptools_req = install_req.req # may be None
 
     def __str__(self):
@@ -162,7 +167,7 @@ class PipVCSInstallRequirement(object):
                 project_name = self.metadata['name']
 
         return {
-            'type': 'vcs',
+            'type': self.type,
             'resolved': (self.metadata is not None),
             'project_name': project_name,
             'unsafe_name': unsafe_name,
@@ -176,7 +181,7 @@ class PipVCSInstallRequirement(object):
 
     def resolve(self):
         """
-        Downloads this requirement from the VCS repository and returns metadata from its setup.py.
+        Downloads this requirement from the VCS repository or archive file and returns metadata from its setup.py.
         Returns an error string or None if no error.
         """
         tmpdir = tempfile.mkdtemp()
@@ -186,13 +191,23 @@ class PipVCSInstallRequirement(object):
                 subprocess.call(['git', 'clone', '--depth=1', self.url, tmpdir], stdout=devnull, stderr=devnull)
             elif self.vcs == 'hg':
                 subprocess.call(['hg', 'clone', self.url, tmpdir], stdout=devnull, stderr=devnull)
+            elif self.vcs is None and self.type == 'archive':
+                install_url = self._install_req.url
+                tmparchive = tempfile.mkstemp()[1]
+                subprocess.call(['curl', '-L', install_url, '-o', tmparchive], stdout=devnull, stderr=devnull)
+                if install_url.endswith(".gz"):
+                    subprocess.call(['gunzip', '-c', tmparchive], stdout=devnull, stderr=devnull)
+                    install_url = install_url[0:-3]
+                if install_url.endswith(".tar"):
+                    subprocess.call(['tar', '-xvf', tmparchive, '-C', tmpdir], stdout=devnull, stderr=devnull)
+                elif install_url.endswith(".zip"):
+                    subprocess.call(['unzip', '-j', '-o', tmparchive, '-d', tmpdir], stdout=devnull, stderr=devnull)
             else:
                 return 'cannot resolve requirement %s (from %s) with unrecognized VCS: %s' % (str(self), str(self._install_req), self.vcs)
         setup_dict, err = setup_py.setup_info_dir(tmpdir)
         if err is not None:
             return None, err
         shutil.rmtree(tmpdir)
-
         self.metadata = setup_dict
         return None
 
