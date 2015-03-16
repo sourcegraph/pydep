@@ -153,6 +153,7 @@ class Test_requirements(unittest.TestCase):
         with open(requirements_file, 'w') as f:
             f.write(requirements_str)
         pip_reqs = pip.req.parse_requirements(requirements_file, session=pip.download.PipSession())
+        reqs = [PipURLInstallRequirement(r).to_dict() for r in pip_reqs]
         os.remove(requirements_file)
 
         self.assertListEqual(expected, reqs)
