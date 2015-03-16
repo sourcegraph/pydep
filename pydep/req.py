@@ -60,7 +60,7 @@ def requirements_from_requirements_txt(rootdir):
 
     all_reqs = {}
     for f in req_files:
-        for install_req in pip.req.parse_requirements(f):
+        for install_req in pip.req.parse_requirements(f, session=pip.download.PipSession()):
             if install_req.url is not None:
                 req = PipURLInstallRequirement(install_req)
             else:
@@ -131,7 +131,7 @@ class PipURLInstallRequirement(object):
     """
     This represents a URL requirement as seen by pip (e.g., 'git+git://github.com/foo/bar/').
     Such a requirement is not a valid requirement by setuptools standards. (In a setup.py, you would add the name/version
-    of the requirement to install_requires as with PyPI packages, and then add the URL link to dependency_links.  
+    of the requirement to install_requires as with PyPI packages, and then add the URL link to dependency_links.
     Also included archive files such as *.zip, *.tar, *.zip.gz, or *.tar.gz)
     The constructor takes a pip.req.InstallRequirement.
     """
