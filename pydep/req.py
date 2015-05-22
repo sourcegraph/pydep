@@ -220,6 +220,7 @@ _hardcoded_repo_urls = {
     "autobahn":              "git://github.com/tavendo/AutobahnPython",
     "bottle":                "git://github.com/defnull/bottle",
     "celery":                "git://github.com/celery/celery",
+    "cffi":                  "https://bitbucket.org/cffi/cffi",
     "chameleon":             "git://github.com/malthe/chameleon",
     "coverage":              "https://bitbucket.org/ned/coveragepy",
     "dependency_injection":  "git://github.com/gittip/dependency_injection.py",
@@ -272,6 +273,7 @@ _hardcoded_repo_urls = {
     "scipy":                 "git://github.com/scipy/scipy",
     "sentry":                "git://github.com/getsentry/sentry",
     "setuptools":            "git://github.com/jaraco/setuptools",
+    "six":                   "https://bitbucket.org/gutworth/six",
     "sockjs-tornado":        "git://github.com/mrjoes/sockjs-tornado",
     "south":                 "https://bitbucket.org/andrewgodwin/south",
     "sqlalchemy":            "git://github.com/zzzeek/sqlalchemy",
@@ -284,5 +286,6 @@ _hardcoded_repo_urls = {
     "webob":                 "git://github.com/Pylons/webob",
     "webpy":                 "git://github.com/webpy/webpy",
     "werkzeug":              "git://github.com/mitsuhiko/werkzeug",
+    "wtforms":               "git://github.com/wtforms/wtforms",
     "zope.interface":        "git://github.com/zopefoundation/zope.interface",
 }
