@@ -6,6 +6,7 @@ repo_url_patterns = [
     r'(?:git\+|hg\+)?((?:https?|git|hg)\://code.google.com/p/(?:[^/#]+))(?:/.*)?',
 ]
 
+
 def parse_repo_url(url):
     """Returns the canonical repository clone URL from a string that contains it"""
     for pattern in repo_url_patterns:
