@@ -13,8 +13,9 @@ import re
 from glob import glob
 from os import path
 
-import setup_py
-from vcs import parse_repo_url
+from pydep import setup_py
+from pydep.vcs import parse_repo_url
+
 
 def requirements(rootdir, resolve=True):
     """
@@ -30,10 +31,11 @@ def requirements(rootdir, resolve=True):
     if resolve:
         for req in reqs:
             err = req.resolve()
-            if err != None:
+            if err is not None:
                 sys.stderr.write('error resolving requirement %s: %s\n' % (str(req), err))
 
     return [r.to_dict() for r in reqs], None
+
 
 def requirements_from_setup_py(rootdir):
     """
@@ -51,7 +53,9 @@ def requirements_from_setup_py(rootdir):
             reqs.append(SetupToolsRequirement(pr.Requirement.parse(req_str)))
     return reqs, None
 
+
 REQUIREMENTS_FILE_GLOB = '*requirements*.txt'
+
 
 def requirements_from_requirements_txt(rootdir):
     req_files = glob(path.join(rootdir, REQUIREMENTS_FILE_GLOB))
@@ -61,7 +65,7 @@ def requirements_from_requirements_txt(rootdir):
     all_reqs = {}
     for f in req_files:
         for install_req in pip.req.parse_requirements(f, session=pip.download.PipSession()):
-            if install_req.url is not None:
+            if install_req.link is not None:
                 req = PipURLInstallRequirement(install_req)
             else:
                 req = SetupToolsRequirement(install_req.req)
@@ -108,46 +112,57 @@ class SetupToolsRequirement(object):
         }
 
     def resolve(self):
-        """Downloads this requirement from PyPI and returns metadata from its setup.py. Returns an error string or None if no error."""
-        tmpdir = tempfile.mkdtemp()
+        """
+        Downloads this requirement from PyPI and returns metadata from its setup.py.
+        Returns an error string or None if no error.
+        """
+        tmp_dir = tempfile.mkdtemp()
         with open(os.devnull, 'w') as devnull:
             try:
-                subprocess.check_call(['pip', 'install', '--build',  tmpdir, '--upgrade', '--force-reinstall', '--no-install', '--no-deps', '--no-use-wheel', str(self.req)],
-                                      stdout=devnull, stderr=devnull)
+                cmd = ['pip', 'install',
+                       '--download',  tmp_dir,
+                       '--build',  tmp_dir,
+                       '--no-clean', '--no-deps',
+                       '--no-binary', ':all:', str(self.req)]
+                subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
             except Exception as e:
-                shutil.rmtree(tmpdir)
+                shutil.rmtree(tmp_dir)
                 return 'error downloading requirement: %s' % str(e)
 
-        projectdir = path.join(tmpdir, self.req.project_name)
-        setup_dict, err = setup_py.setup_info_dir(projectdir)
+        project_dir = path.join(tmp_dir, self.req.project_name)
+        setup_dict, err = setup_py.setup_info_dir(project_dir)
         if err is not None:
             return None, err
-        shutil.rmtree(tmpdir)
+        shutil.rmtree(tmp_dir)
 
         self.metadata = setup_dict
         return None
 
+
 class PipURLInstallRequirement(object):
     """
     This represents a URL requirement as seen by pip (e.g., 'git+git://github.com/foo/bar/').
-    Such a requirement is not a valid requirement by setuptools standards. (In a setup.py, you would add the name/version
-    of the requirement to install_requires as with PyPI packages, and then add the URL link to dependency_links.
+    Such a requirement is not a valid requirement by setuptools standards. (In a setup.py,
+    you would add the name/version of the requirement to install_requires as with PyPI packages,
+    and then add the URL link to dependency_links.
     Also included archive files such as *.zip, *.tar, *.zip.gz, or *.tar.gz)
     The constructor takes a pip.req.InstallRequirement.
     """
+    _archive_regex = re.compile('^(http|https)://[^/]+/.+\.(zip|tar)(\.gz|)$', re.IGNORECASE)
+
     def __init__(self, install_req):
         self._install_req = install_req
-        if install_req.url is None:
+        if install_req.link is None:
             raise 'No URL found in install_req: %s' % str(install_req)
-        self.url = parse_repo_url(install_req.url)
+        self.url = parse_repo_url(install_req.link.url)
         self.metadata = None
         self.vcs = None
         self.type = 'vcs'
-        if install_req.url.find('+') >= 0:
-            self.vcs = install_req.url[:install_req.url.find('+')]
-        elif re.compile(r'^(http|https)://[^/]+/.+\.(zip|tar)(\.gz|)$', re.IGNORECASE).match(install_req.url) is not None:
+        if install_req.link.url.find('+') >= 0:
+            self.vcs = install_req.link.url[:install_req.link.url.find('+')]
+        elif self._archive_regex.match(install_req.link.url) is not None:
             self.type = 'archive'
-        self.setuptools_req = install_req.req # may be None
+        self.setuptools_req = install_req.req  # may be None
 
     def __str__(self):
         return self.url.__str__()
@@ -203,7 +218,11 @@ class PipURLInstallRequirement(object):
                 elif install_url.endswith(".zip"):
                     subprocess.call(['unzip', '-j', '-o', tmparchive, '-d', tmpdir], stdout=devnull, stderr=devnull)
             else:
-                return 'cannot resolve requirement %s (from %s) with unrecognized VCS: %s' % (str(self), str(self._install_req), self.vcs)
+                return 'cannot resolve requirement {} (from {}) with unrecognized VCS: {}'.format(
+                    str(self),
+                    str(self._install_req),
+                    self.vcs
+                )
         setup_dict, err = setup_py.setup_info_dir(tmpdir)
         if err is not None:
             return None, err

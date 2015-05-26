@@ -1,14 +1,12 @@
 import unittest
-import pkg_resources as pr
-import pip.req
-import tempfile
-import os
-from os import path
-from req import *
+from pip import req as req
+
+from pydep.req import *
 
 testdatadir = path.join(path.dirname(__file__), 'testdata')
 
-class Test_requirements(unittest.TestCase):
+
+class TestRequirements(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
@@ -61,10 +59,12 @@ class Test_requirements(unittest.TestCase):
                 {'key': 'https://code.google.com/p/foo',
                  'repo_url': 'https://code.google.com/p/foo',
                  'type': 'vcs',
-                 'modules': None, 'extras': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None, 'unsafe_name': None},
+                 'modules': None, 'extras': None, 'packages': None, 'project_name': None, 'resolved': False,
+                 'specs': None, 'unsafe_name': None},
                 {'key': 'https://github.com/foo/bar',
                  'repo_url': 'https://github.com/foo/bar',
-                 'type': 'vcs', 'extras': None, 'modules': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None, 'unsafe_name': None},
+                 'type': 'vcs', 'extras': None, 'modules': None, 'packages': None, 'project_name': None,
+                 'resolved': False, 'specs': None, 'unsafe_name': None},
                 {'extras': (),
                  'key': 'foo',
                  'project_name': 'foo',
@@ -81,44 +81,44 @@ class Test_requirements(unittest.TestCase):
             dir_, exp = testcase[0], testcase[1]
             rootdir = path.join(testdatadir, dir_)
             reqs, err = requirements(rootdir, resolve=False)
-            if err != None:
+            if err is not None:
                 if exp != '<<ERROR>>':
-                    print 'unexpected error: ', err
+                    print('unexpected error: ', err)
                 self.assertEqual(exp, '<<ERROR>>')
             else:
-                self.assertListEqual(sorted(exp), sorted(reqs))
+                self.assertListEqual(sorted(exp, key=lambda x: x['key']), sorted(reqs, key=lambda x: x['key']))
 
     def test_SetupToolsRequirement(self):
         testcases = [
             ("foo==0.0.0", {
-                 'extras': (),
-                 'key': 'foo',
-                 'modules': None,
-                 'packages': None,
-                 'project_name': 'foo',
-                 'repo_url': None,
-                 'resolved': False,
-                 'specs': [('==', '0.0.0')],
-                 'type': 'setuptools',
-                 'unsafe_name': 'foo'
-             }),
+                'extras': (),
+                'key': 'foo',
+                'modules': None,
+                'packages': None,
+                'project_name': 'foo',
+                'repo_url': None,
+                'resolved': False,
+                'specs': [('==', '0.0.0')],
+                'type': 'setuptools',
+                'unsafe_name': 'foo'
+            }),
             ("foo[bar]>=0.1b", {
-                 'extras': ('bar',),
-                 'key': 'foo',
-                 'modules': None,
-                 'packages': None,
-                 'project_name': 'foo',
-                 'repo_url': None,
-                 'resolved': False,
-                 'specs': [('>=', '0.1b')],
-                 'type': 'setuptools',
-                 'unsafe_name': 'foo'
+                'extras': ('bar',),
+                'key': 'foo',
+                'modules': None,
+                'packages': None,
+                'project_name': 'foo',
+                'repo_url': None,
+                'resolved': False,
+                'specs': [('>=', '0.1b')],
+                'type': 'setuptools',
+                'unsafe_name': 'foo'
             }),
         ]
         for testcase in testcases:
             req_str, exp_dict = testcase[0], testcase[1]
-            req = SetupToolsRequirement(pr.Requirement.parse(req_str))
-            self.assertDictEqual(exp_dict, req.to_dict())
+            st_req = SetupToolsRequirement(pr.Requirement.parse(req_str))
+            self.assertDictEqual(exp_dict, st_req.to_dict())
 
     def test_PipVCSInstallRequirement(self):
         requirements_str = """
@@ -131,13 +131,15 @@ class Test_requirements(unittest.TestCase):
                 'type': 'vcs',
                 'key': 'https://github.com/foo/bar',
                 'repo_url': 'https://github.com/foo/bar',
-                'unsafe_name': None, 'extras': None, 'modules': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None,
+                'unsafe_name': None, 'extras': None, 'modules': None, 'packages': None, 'project_name': None,
+                'resolved': False, 'specs': None,
             },
             {
                 'type': 'vcs',
                 'key': 'https://code.google.com/p/foo',
                 'repo_url': 'https://code.google.com/p/foo',
-                'unsafe_name': None, 'extras': None, 'modules': None, 'packages': None, 'project_name': None, 'resolved': False, 'specs': None,
+                'unsafe_name': None, 'extras': None, 'modules': None, 'packages': None, 'project_name': None,
+                'resolved': False, 'specs': None,
             },
             {
                 'type': 'vcs',
@@ -145,14 +147,14 @@ class Test_requirements(unittest.TestCase):
                 'repo_url': 'git://code.google.com/p/foo',
                 'unsafe_name': 'bar',
                 'project_name': 'bar',
-                'specs': [], 'extras': (), 'modules': None, 'packages': None,  'resolved': False,
+                'specs': [], 'extras': (), 'modules': None, 'packages': None, 'resolved': False,
             },
         ]
 
         _, requirements_file = tempfile.mkstemp()
         with open(requirements_file, 'w') as f:
             f.write(requirements_str)
-        pip_reqs = pip.req.parse_requirements(requirements_file, session=pip.download.PipSession())
+        pip_reqs = req.parse_requirements(requirements_file, session=pip.download.PipSession())
         reqs = [PipURLInstallRequirement(r).to_dict() for r in pip_reqs]
         os.remove(requirements_file)
 
