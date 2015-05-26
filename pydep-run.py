@@ -79,7 +79,7 @@ def dep(args):
     print(json.dumps(reqs))
 
 
-def smoke_test():
+def smoke_test(args):
     """Test subcommand that runs pydep on a few popular repositories and prints the results."""
     testcases = [
         ('Flask', 'https://github.com/mitsuhiko/flask.git'),

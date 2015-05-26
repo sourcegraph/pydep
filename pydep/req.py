@@ -116,24 +116,24 @@ class SetupToolsRequirement(object):
         Downloads this requirement from PyPI and returns metadata from its setup.py.
         Returns an error string or None if no error.
         """
-        tmpdir = tempfile.mkdtemp()
+        tmp_dir = tempfile.mkdtemp()
         with open(os.devnull, 'w') as devnull:
             try:
                 cmd = ['pip', 'install',
-                       '--build',  tmpdir,
-                       '--upgrade', '--force-reinstall',
-                       '--no-install', '--no-deps',
-                       '--no-use-wheel', str(self.req)]
+                       '--download',  tmp_dir,
+                       '--build',  tmp_dir,
+                       '--no-clean', '--no-deps',
+                       '--no-binary', ':all:', str(self.req)]
                 subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
             except Exception as e:
-                shutil.rmtree(tmpdir)
+                shutil.rmtree(tmp_dir)
                 return 'error downloading requirement: %s' % str(e)
 
-        projectdir = path.join(tmpdir, self.req.project_name)
-        setup_dict, err = setup_py.setup_info_dir(projectdir)
+        project_dir = path.join(tmp_dir, self.req.project_name)
+        setup_dict, err = setup_py.setup_info_dir(project_dir)
         if err is not None:
             return None, err
-        shutil.rmtree(tmpdir)
+        shutil.rmtree(tmp_dir)
 
         self.metadata = setup_dict
         return None
