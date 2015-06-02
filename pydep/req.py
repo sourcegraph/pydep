@@ -4,7 +4,7 @@ This module contains classes for dealing with pip and setuptools requirements cl
 
 import sys
 import pkg_resources as pr
-import pip.req
+import pip
 import tempfile
 import shutil
 import subprocess
@@ -119,15 +119,15 @@ class SetupToolsRequirement(object):
         tmp_dir = tempfile.mkdtemp()
         with open(os.devnull, 'w') as devnull:
             try:
-                cmd = ['pip', 'install',
+                cmd = ['install', '--quiet',
                        '--download',  tmp_dir,
                        '--build',  tmp_dir,
                        '--no-clean', '--no-deps',
                        '--no-binary', ':all:', str(self.req)]
-                subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+                pip.main(cmd)
             except Exception as e:
                 shutil.rmtree(tmp_dir)
-                return 'error downloading requirement: %s' % str(e)
+                return 'error downloading requirement: {}'.format(str(e))
 
         project_dir = path.join(tmp_dir, self.req.project_name)
         setup_dict, err = setup_py.setup_info_dir(project_dir)
