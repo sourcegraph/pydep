@@ -203,9 +203,9 @@ class PipURLInstallRequirement(object):
         with open(os.devnull, 'w') as devnull:
             # Because of a bug in pip when dealing with VCS URLs, we can't use pip to download the repository
             if self.vcs == 'git':
-                subprocess.call(['git', 'clone', '--depth=1', self.url, tmpdir], stdout=devnull, stderr=devnull)
+                subprocess.call(['git', 'clone', '--depth=1', str(self.url), tmpdir], stdout=devnull, stderr=devnull)
             elif self.vcs == 'hg':
-                subprocess.call(['hg', 'clone', self.url, tmpdir], stdout=devnull, stderr=devnull)
+                subprocess.call(['hg', 'clone', str(self.url), tmpdir], stdout=devnull, stderr=devnull)
             elif self.vcs is None and self.type == 'archive':
                 install_url = self._install_req.url
                 tmparchive = tempfile.mkstemp()[1]
