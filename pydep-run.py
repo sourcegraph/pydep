@@ -5,6 +5,7 @@ import json
 import argparse
 import pydep.req
 import pydep.setup_py
+import pydep.util
 
 from os import path
 import subprocess
@@ -120,7 +121,7 @@ def smoke_test(args):
         print('failed with exception %s' % str(e))
     finally:
         if tmpdir:
-            shutil.rmtree(tmpdir)
+            util.rmtree(tmpdir)
 
 #
 # Helpers
