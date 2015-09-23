@@ -17,6 +17,3 @@ def rmtree(dir):
 def __fix_read_only(fn, path, excinfo):
 	os.chmod(path, stat.S_IWRITE)
 	fn(path)
-
-if __name__ == '__main__':
-	rmtree('C:/Users/lyolik/AppData/Local/Temp/tmpvbovbo')
