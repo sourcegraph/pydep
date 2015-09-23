@@ -14,6 +14,7 @@ from glob import glob
 from os import path
 
 from pydep import setup_py
+from pydep.util import rmtree
 from pydep.vcs import parse_repo_url
 
 
@@ -126,14 +127,14 @@ class SetupToolsRequirement(object):
                        '--no-binary', ':all:', str(self.req)]
                 pip.main(cmd)
             except Exception as e:
-                shutil.rmtree(tmp_dir)
+                rmtree(tmp_dir)
                 return 'error downloading requirement: {}'.format(str(e))
 
         project_dir = path.join(tmp_dir, self.req.project_name)
         setup_dict, err = setup_py.setup_info_dir(project_dir)
         if err is not None:
             return None, err
-        shutil.rmtree(tmp_dir)
+        rmtree(tmp_dir)
 
         self.metadata = setup_dict
         return None
@@ -226,7 +227,7 @@ class PipURLInstallRequirement(object):
         setup_dict, err = setup_py.setup_info_dir(tmpdir)
         if err is not None:
             return None, err
-        shutil.rmtree(tmpdir)
+        rmtree(tmpdir)
         self.metadata = setup_dict
         return None
 
