@@ -30,12 +30,12 @@ def requirements(rootdir, resolve=True):
     reqstxt_reqs, reqstxt_err = requirements_from_requirements_txt(rootdir)
     if reqstxt_err is None:
         for r in reqstxt_reqs:
-            reqs[r.req.project_name] = r
+            reqs[r.to_dict()['key']] = r
     setuppy_reqs, setuppy_err = requirements_from_setup_py(rootdir)
     if setuppy_err is None:
         for r in setuppy_reqs:
-            if r.req.project_name not in reqs:
-                reqs[r.req.project_name] = r
+            if r.to_dict()['key'] not in reqs:
+                reqs[r.to_dict()['key']] = r
     if reqstxt_err is not None and setuppy_err is not None:
         return None, 'could not get requirements due to 2 errors: %s, %s' % (reqstxt_err, setuppy_err)
 
