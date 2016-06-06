@@ -10,5 +10,7 @@ setup(
     description='A simple module that will print the dependencies of a python project'
     'Usage: python -m pydep <dir>',
     zip_safe=False,
-    install_requires=[],
+    install_requires=[
+        "pip==7.1.2",
+    ],
 )
