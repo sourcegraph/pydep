@@ -19,15 +19,27 @@ from pydep.vcs import parse_repo_url
 
 
 def requirements(rootdir, resolve=True):
+    """Accepts the root directory of a PyPI package and returns its requirements. If
+    both *requirements.txt and setup.py exist, it combines the dependencies
+    defined in both, giving precedence to those defined in requirements.txt.
+    Returns (requirements, error_string) tuple. error_string is None if no
+    error.
+
     """
-    Accepts the root directory of a PyPI package and returns its requirements.
-    Returns (requirements, error_string) tuple. error_string is None if no error.
-    """
-    reqs, err = requirements_from_requirements_txt(rootdir)
-    if err is not None:
-        reqs, err = requirements_from_setup_py(rootdir)
-    if err is not None:
-        return None, 'could not get requirements due to error %s' % err
+    reqs = {}
+    reqstxt_reqs, reqstxt_err = requirements_from_requirements_txt(rootdir)
+    if reqstxt_err is None:
+        for r in reqstxt_reqs:
+            reqs[r.req.project_name] = r
+    setuppy_reqs, setuppy_err = requirements_from_setup_py(rootdir)
+    if setuppy_err is None:
+        for r in setuppy_reqs:
+            if r.req.project_name not in reqs:
+                reqs[r.req.project_name] = r
+    if reqstxt_err is not None and setuppy_err is not None:
+        return None, 'could not get requirements due to 2 errors: %s, %s' % (reqstxt_err, setuppy_err)
+
+    reqs = list(reqs.values())
 
     if resolve:
         for req in reqs:
