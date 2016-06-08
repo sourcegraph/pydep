@@ -14,3 +14,13 @@ def parse_repo_url(url):
         if match is not None:
             return match.group(1)
     return None
+
+def parse_repo_url_and_revision(url):
+    """Returns the canonical repository clone URL and revision from a string that contains it"""
+    full_url = parse_repo_url(url)
+    components = full_url.split('@')
+    if len(components) == 2:
+        return components[0], components[1]
+    elif len(components) == 1:
+        return components[0], ''
+    return full_url, '' # fall back to returning the full URL
