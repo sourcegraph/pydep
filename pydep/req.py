@@ -15,7 +15,7 @@ from os import path
 
 from pydep import setup_py
 from pydep.util import rmtree
-from pydep.vcs import parse_repo_url
+from pydep.vcs import parse_repo_url, parse_repo_url_and_revision
 
 
 def requirements(rootdir, resolve=True):
@@ -165,7 +165,7 @@ class PipURLInstallRequirement(object):
         self._install_req = install_req
         if install_req.link is None:
             raise 'No URL found in install_req: %s' % str(install_req)
-        self.url = parse_repo_url(install_req.link.url)
+        self.url, self.revision = parse_repo_url_and_revision(install_req.link.url)
         self.metadata = None
         self.vcs = None
         self.type = 'vcs'
