@@ -151,11 +151,13 @@ class TestRequirements(unittest.TestCase):
             },
         ]
 
-        _, requirements_file = tempfile.mkstemp()
+        handle, requirements_file = tempfile.mkstemp()
         with open(requirements_file, 'w') as f:
             f.write(requirements_str)
+
         pip_reqs = req.parse_requirements(requirements_file, session=pip.download.PipSession())
         reqs = [PipURLInstallRequirement(r).to_dict() for r in pip_reqs]
+        os.fdopen(handle).close()
         os.remove(requirements_file)
 
         self.assertListEqual(expected, reqs)

@@ -39,7 +39,6 @@ For example,
 
 Additional requirements
 -----
-- Unix (Windows is untested and will probably fail, because, e.g., things get piped to /dev/null in a few places)
 - pip 7.0+
 - curl, unzip, gunzip, tar
 

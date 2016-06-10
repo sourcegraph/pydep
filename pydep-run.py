@@ -7,7 +7,7 @@ import pydep.req
 import pydep.setup_py
 import pydep.util
 
-from os import path
+from os import path, devnull
 import subprocess
 import tempfile
 import shutil
@@ -95,8 +95,8 @@ def smoke_test(args):
             print('Downloading and processing %s...' % title)
             subdir = path.splitext(path.basename(cloneURL))[0]
             dir_ = path.join(tmpdir, subdir)
-            with open('/dev/null', 'w') as devnull:
-                subprocess.call(['git', 'clone', cloneURL, dir_], stdout=devnull, stderr=devnull)
+            with open(devnull , 'w') as handle:
+                subprocess.call(['git', 'clone', cloneURL, dir_], stdout=handle, stderr=handle)
 
             print('')
             reqs, err = pydep.req.requirements(dir_, True)
@@ -121,7 +121,7 @@ def smoke_test(args):
         print('failed with exception %s' % str(e))
     finally:
         if tmpdir:
-            util.rmtree(tmpdir)
+            pydep.util.rmtree(tmpdir)
 
 #
 # Helpers
