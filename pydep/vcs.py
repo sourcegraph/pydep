@@ -18,6 +18,8 @@ def parse_repo_url(url):
 def parse_repo_url_and_revision(url):
     """Returns the canonical repository clone URL and revision from a string that contains it"""
     full_url = parse_repo_url(url)
+    if full_url is None:
+        return url, '' # fall back to returning the full URL
     components = full_url.split('@')
     if len(components) == 2:
         return components[0], components[1]
