@@ -2,9 +2,7 @@ pydep
 =====
 
 `pydep` is a simple module / command line tool that will print the dependencies of a python project.<br>
-`pydep` is still under active development. There are bugs. Pull requests welcome :)
-
-__WARNING: Do not run pydep on untrusted code, as it may execute a project's setup.py.__
+`pydep` is still under active development and should be considered "alpha"-quality software.
 
 Install
 -----
