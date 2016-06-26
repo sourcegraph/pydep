@@ -14,11 +14,20 @@ def setup_dirs(container_dir):
     contain a setup.py)
     """
     rootdirs = []
-    for dirpath, _, filenames in os.walk(container_dir):
+    for dirpath, dirnames, filenames in os.walk(container_dir):
         for filename in filenames:
             if filename == 'setup.py':
                 rootdirs.append(dirpath)
                 break
+
+        # Clean up unwanted subdirectories before next walk.
+        newnames = []
+        for dirname in dirnames:
+            if dirname.startswith(".") or dirname.startswith("virtualenv_") or dirname == "testdata":
+                continue
+            newnames.append(dirname)
+        dirnames[:] = newnames
+
     return rootdirs
 
 
